@@ -27,12 +27,18 @@ const update = trpc.procedure
 const onUpdate = trpc.procedure
     .input(z.object({ clientId: z.string() }))  // ← Add input
     .subscription(({ input }) => {
+        console.log("Subscribed to update events");
+        console.log(`Client ID: ${input.clientId}`);
         return observable<string>(emit => {
-            eventEmitter.on("update", emit.next)
-            console.log("Subscribed to update events");
-            console.log(`Client ID: ${input.clientId}`);
+            const handler = (data: any) => {  
+                if (data.userId === input.clientId) {
+                    emit.next(data);
+                }
+            };
+
+            eventEmitter.on("update", handler)
             return () => {
-                eventEmitter.off("update", emit.next);
+                eventEmitter.off("update", handler);
             };
         })
     });
