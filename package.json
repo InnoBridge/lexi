@@ -5,7 +5,7 @@
   "author": "yilengyao <innobridgetechnology@gmail.com>",
   "license": "InnoBridge",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "exports": {
@@ -16,7 +16,7 @@
       },
       "require": {
         "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "default": "./dist/index.cjs"
       }
     }
   },
@@ -32,9 +32,13 @@
     "test:watch": "vitest",
     "typecheck": "tsc",
     "verify": "npm run typecheck && npm run test && npm run build",
-    "prepublishOnly": "npm run verify"
+    "prepublishOnly": "npm run verify",
+    "test:integration": "npx tsx src/__tests__/integration/${npm_config_file:-*.test.ts}"
   },
   "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/ws": "^8.18.1",
+    "dotenv": "^16.5.0",
     "rimraf": "^6.0.1",
     "tsup": "^8.3.6",
     "typescript": "^5.7.3",
@@ -42,5 +46,11 @@
   },
   "engines": {
     "node": "^20.0.0 || >=22.0.0"
+  },
+  "dependencies": {
+    "@trpc/client": "^11.1.4",
+    "@trpc/server": "^11.1.4",
+    "ws": "^8.18.2",
+    "zod": "^3.25.33"
   }
 }
