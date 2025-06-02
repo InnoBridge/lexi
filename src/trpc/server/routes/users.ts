@@ -29,18 +29,25 @@ const onUpdate = trpc.procedure
     .subscription(({ input }) => {
         console.log("Subscribed to update events");
         console.log(`Client ID: ${input.clientId}`);
-        return observable<string>(emit => {
-            const handler = (data: any) => {  
-                if (data.userId === input.clientId) {
-                    emit.next(data);
-                }
-            };
+        // Return async generator instead of observable
+        return (async function* () {
+            try {
+                while (true) {
+                    // Wait for the next update event
+                    const updateData: any = await new Promise(resolve => {
+                        eventEmitter.once("update", resolve);
+                    });
 
-            eventEmitter.on("update", handler)
-            return () => {
-                eventEmitter.off("update", handler);
-            };
-        })
+                    // Filter by clientId if needed
+                    if (updateData.userId === input.clientId) {
+                        yield updateData;
+                    }
+                }
+            } finally {
+                // Cleanup happens automatically when generator ends
+                console.log(`Unsubscribed client: ${input.clientId}`);
+            }
+        })();
     });
 
 

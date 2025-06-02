@@ -1,11 +1,12 @@
 import * as dotenv from 'dotenv';
 import path from 'path';
-
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 import { 
     initializeTRPCClient, 
     onUpdate
 } from '@/trpc/client/api';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
 
 const SERVER_URL = process.env.SERVER_URL;
 

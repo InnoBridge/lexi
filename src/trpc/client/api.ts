@@ -1,13 +1,12 @@
 import { 
   createTRPCClient, 
-  createWSClient, 
+  createWSClient,
   httpBatchLink, 
   TRPCClient, 
   wsLink 
 } from '@trpc/client';
 import { AppRouter } from '@/trpc/server/routes/router';
 import WebSocket from 'ws';  // ← Add this import
-
 let client: TRPCClient<AppRouter> | null = null;
 
 const initializeTRPCClient = (url: string): void => {

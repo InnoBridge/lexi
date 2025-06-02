@@ -10,6 +10,7 @@
     "baseUrl": ".",
     "paths": {
           "@/*": ["src/*"],
+          "@innobridge/usermanagement": ["./node_modules/@innobridge/usermanagement/dist/index"]
     }
   },
   "include": ["src/**/*", "tsup.config.ts", "vitest.config.ts"]
