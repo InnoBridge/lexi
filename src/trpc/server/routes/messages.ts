@@ -23,37 +23,50 @@ const publish = trpc.procedure
         return { success: true };
 });
 
+// Updated to use async generator instead of observable
 const subscribeToMessages = trpc.procedure
     .input(z.object({ userId: z.string() }))
-    .subscription(async ({ input }) => {
+    .subscription(async function* ({ input }) {
         console.log("Subscribed to message events");
         console.log(`Client ID: ${input.userId}`);
 
-        return observable<z.infer<typeof MessageSchema>>((emit) => { // Remove async here
-            let cleanup: void | undefined;
+        // Create a promise-based message queue
+        const messageQueue: Array<z.infer<typeof MessageSchema>> = [];
+        let cleanup: void | undefined;
+        let isActive = true;
 
-            // Handle async subscribeUser properly
-            (async () => {
-                try {
-                    cleanup = await subscribeUser(input.userId, (message) => {
-                        console.log(`New message for user ${input.userId}:`, message);
-                        emit.next(message); // Emit the message to subscribers
-                    });
-                } catch (error) {
-                    console.error('Error setting up subscription:', error);
-                    emit.error(error);
+        try {
+            // Subscribe to messages
+            cleanup = await subscribeUser(input.userId, (message) => {
+                console.log(`New message for user ${input.userId}:`, message);
+                if (isActive) {
+                    messageQueue.push(message);
                 }
-            })();
+            });
 
-            // Return cleanup function (synchronous)
-            return () => {
-                console.log(`Unsubscribing user ${input.userId}`);
-                if (!cleanup) {
-                    unsubscribeUser(input.userId);
+            // Yield messages as they arrive
+            while (isActive) {
+                if (messageQueue.length > 0) {
+                    const message = messageQueue.shift();
+                    if (message) {
+                        yield message;
+                    }
                 }
-            };
-        });
-});
+                
+                // Small delay to prevent busy waiting
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+        } catch (error) {
+            console.error('Error in subscription:', error);
+            throw error;
+        } finally {
+            // Cleanup when subscription ends
+            isActive = false;
+            if (!cleanup) {
+                unsubscribeUser(input.userId);
+            }
+        }
+    });
 
 const messagesRouter = trpc.router({
     publish: publish,

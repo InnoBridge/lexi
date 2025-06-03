@@ -14,11 +14,6 @@ const SERVER_URL = process.env.SERVER_URL;
 
 const userId = process.argv[2] || 'default-user-123';
 
-// async function testClient() {
-//     console.log('Starting TRPC client tests...');
-//     await onUpdate(userId);
-// };
-
 const subscribeToMessagesTest = async () => {
     console.log('Starting message subscription test...');
     const messages: Message[] = [];
@@ -36,7 +31,6 @@ const subscribeToMessagesTest = async () => {
         initializeTRPCClient(SERVER_URL!);
 
         // promise tests in order
-        // await testClient();
         await subscribeToMessagesTest();
 
         console.log("🎉 All integration tests passed");
