@@ -39,9 +39,15 @@ const subscribeToUserQueue = async (client: QueueClient, userId: string): Promis
         const client = await initializationClient(RABBITMQ_URL!);
         
         await subscribeToUserQueue(client, userId);
-        console.log("🎉 RabbitMQ Publisher integration test passed");
+        
+        // setTimeout(async () => {
+        //     console.log('Closing connection channel after delay...');
+        //     await client.unsubscribeUser(userId);
+        // }, 5000);
+
+        console.log("🎉 RabbitMQ Subscriber integration test passed");
     } catch (err) {
-        console.error("❌ RabbitMQ Publisher integration test failed:", err);
+        console.error("❌ RabbitMQ Subscriber integration test failed:", err);
         process.exit(1);
     }
 })();
