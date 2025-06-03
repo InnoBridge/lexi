@@ -1,6 +1,7 @@
 import { trpc, adminProcedure } from '@/trpc/server/trpc';
 import { z } from 'zod';
 import { usersRouter } from '@/trpc/server/routes/users';
+import { messagesRouter } from '@/trpc/server/routes/messages';
 
 const getHelloRoute = trpc.procedure.query(() => {
         return 'Hello from tRPC!';
@@ -33,15 +34,15 @@ const secretData = adminProcedure.query(({ ctx }) => {
     return "Super top secret admin data";
 });
 
-const appRouter = trpc.router({
+const router = trpc.router({
     // Define your tRPC routes here
     getHello: getHelloRoute,
     greetings: greetingsRoute,
     log: log,
     secretData: secretData,
+    users: usersRouter,
+    messages: messagesRouter
 });
-
-const router = trpc.mergeRouters(appRouter, usersRouter);
 
 export { router };
 export type AppRouter = typeof router;

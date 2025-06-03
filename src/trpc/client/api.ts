@@ -6,18 +6,25 @@ import {
   wsLink 
 } from '@trpc/client';
 import { AppRouter } from '@/trpc/server/routes/router';
-import WebSocket from 'ws';  // ← Add this import
+import WebSocket from 'ws';
+import { Message } from '@/models/message';
+
 let client: TRPCClient<AppRouter> | null = null;
+let wsClient: ReturnType<typeof createWSClient> | null = null; // Store wsClient reference
+
+
 
 const initializeTRPCClient = (url: string): void => {
   const host = url.replace(/^https?:\/\//, '');
+
+  wsClient = createWSClient({
+    url: `ws://${host}/trpc`,
+    WebSocket: WebSocket as any,
+  });
   client = createTRPCClient<AppRouter>({
     links: [
       wsLink({
-        client: createWSClient({
-          url: `ws://${host}/trpc`,
-          WebSocket: WebSocket as any,  // ← Pass WebSocket implementation
-        }),
+        client: wsClient,
       }),
       httpBatchLink({
         url: `http://${host}/trpc`,
@@ -27,6 +34,8 @@ const initializeTRPCClient = (url: string): void => {
           'Authorization': `Bearer`
         }),
       }),
+      // Keep WebSocket for subscriptions only
+
     ],
   });
 };
@@ -49,21 +58,21 @@ const getUser = () => {
   if (!client) {
     throw new Error('TRPC client is not initialized. Call initiateClient first.');
   }
-  return client.getUser.query();
+  return client.users.getUser.query();
 };
 
 const get = (userId: { userId: string }) => {
   if (!client) {
     throw new Error('TRPC client is not initialized. Call initiateClient first.');
   }
-  return client.get.query(userId);
+  return client.users.get.query(userId);
 };
 
 const update = (userId: { userId: string, name: string }) => {
   if (!client) {
     throw new Error('TRPC client is not initialized. Call initiateClient first.');
   }
-  return client.update.mutate(userId);
+  return client.users.update.mutate(userId);
 };
 
 const log = (message: string) => {
@@ -84,7 +93,7 @@ const onUpdate = (clientId: string) => {
   if (!client) {
     throw new Error('TRPC client is not initialized. Call initiateClient first.');
   }
-  return client.onUpdate.subscribe({ clientId: clientId }, {
+  return client.users.onUpdate.subscribe({ clientId: clientId }, {
     onData: (data) => {
       console.log('Update received:', data);
     },
@@ -92,7 +101,43 @@ const onUpdate = (clientId: string) => {
       console.error('Error in subscription:', error);
     },
   });
-}
+};
+
+const publishMessage = (message: Message) => {
+  if (!client) {
+    throw new Error('TRPC client is not initialized. Call initiateClient first.');
+  }
+  return client.messages.publish.mutate(message);
+};
+
+const subscribeToMessages = (userId: string, messageHandler: (message: Message) => void) => {
+    if (!client) {
+        throw new Error('TRPC client is not initialized. Call initializeTRPCClient first.');
+    }
+    
+    return client.messages.subscribeToMessages.subscribe(
+        { userId }, // Input
+        {
+            onData: (message) => { // Output - the complete message object
+                // Process the message
+                messageHandler(message);
+            },
+            onError: (error) => {
+                console.error('Subscription error:', error);
+            },
+        }
+    );
+};
+
+
+// Add cleanup function
+const cleanup = () => {
+  if (wsClient) {
+    wsClient.close();
+    wsClient = null;
+  }
+  client = null;
+};
 
 export { 
   initializeTRPCClient, 
@@ -104,5 +149,8 @@ export {
   log,
   secretData,
   onUpdate,
+  publishMessage,
+  subscribeToMessages,
+  cleanup,
   client
 };

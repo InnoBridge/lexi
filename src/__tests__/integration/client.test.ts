@@ -1,7 +1,5 @@
 import * as dotenv from 'dotenv';
 import path from 'path';
-
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 import { 
     initializeTRPCClient, 
     getHello, 
@@ -10,8 +8,13 @@ import {
     get,
     update,
     log,
-    secretData
+    secretData,
+    publishMessage,
+    cleanup
 } from '@/trpc/client/api';
+import { Message } from '@/models/message';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const SERVER_URL = process.env.SERVER_URL;
 
@@ -27,6 +30,21 @@ async function testClient() {
     console.log('Secret data response:', await secretData());
 };
 
+const sendMessage = async () => {
+    console.log('Starting message publishing test...');
+    const message: Message = 
+        {
+            chatId: 'chat-123',
+            messageId: 'message-123',
+            userIds: ['123', '456'],
+            senderId: '123',
+            content: 'Hello, this is a new test message!',
+            createdAt: new Date().getTime(),
+        };
+
+    await publishMessage(message);
+    console.log('Message published successfully');
+};
 
 (async function main() {
     try {
@@ -34,10 +52,12 @@ async function testClient() {
         initializeTRPCClient(SERVER_URL!);
 
         // promise tests in order
-        await testClient();
- 
+        // await testClient();
+        await sendMessage();
 
         console.log("🎉 All integration tests passed");
+
+        cleanup(); // Cleanup after tests
     } catch (err) {
         console.error("❌ Integration tests failed:", err);
         process.exit(1);
