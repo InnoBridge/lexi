@@ -89,18 +89,27 @@ class RabbitMQClient implements QueueClient {
             const channel = this.userMessageChannels.get(userId)!;
             const queueName = `${this.USER_QUEUE_PREFIX}${userId}`;
             await channel.assertQueue(queueName, { durable: true });
-
-            channel.consume(queueName, (msg) => {
-                if (msg !== null) {
-                    const messageContent = JSON.parse(msg.content.toString());
+            const consumerInfo = await channel.consume(queueName, (msg) => {
+                try {
+                    const messageContent = JSON.parse(msg!.content.toString());
                     onMessage(messageContent);
-                    channel.ack(msg); // Acknowledge the message
+                    channel.ack(msg!);
+                    console.log(`✅ Message acknowledged for ${queueName}`);
+                } catch (error) {
+                    console.error(`❌ Error processing message:`, error);
+                    channel.nack(msg!, false, false);
                 }
             }, { noAck: false });
-            
-            console.log(`Subscribed to user queue ${queueName}`);
+        
+        const queueInfo = await channel.checkQueue(queueName);
+
+        if (queueInfo.consumerCount === 0) {
+            throw new Error(`❌ Consumer not registered for ${queueName}`);
+        }
+        
+        console.log(`🎉 Consumer for user ${userId} is ACTIVE and ready`);
         } catch (error) {
-            console.error(`Failed to subscribe to user ${userId}:`, error);
+            console.error(`❌ Failed to subscribe user ${userId}:`, error);
             throw error;
         }
     }
