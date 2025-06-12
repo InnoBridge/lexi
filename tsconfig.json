@@ -10,8 +10,9 @@
     "baseUrl": ".",
     "paths": {
           "@/*": ["src/*"],
-          "@innobridge/usermanagement": ["./node_modules/@innobridge/usermanagement/dist/index"]
+          "@innobridge/usermanagement": ["./node_modules/@innobridge/usermanagement/dist/index"],
+          "@innobridge/qatar": ["./node_modules/@innobridge/qatar/dist/index"],
     }
   },
-  "include": ["src/**/*", "tsup.config.ts", "vitest.config.ts"]
+  "include": ["src/**/*", "tsup.config.ts", "vitest.config.ts", "../qatar/src/models", "../qatar/src/queue", "../qatar/src/queue.ts"]
 }
