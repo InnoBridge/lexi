@@ -133,6 +133,13 @@ class ChatsPostgresClient extends BasePostgresClient implements ChatsDatabaseCli
         const client = await this.pool.connect();
         try {
             await this.queryWithClient(client, 'BEGIN');  // Start transaction
+            
+            const chat = await this.getChatByChatId(chatId);
+
+            if (!chat) {
+                throw new Error(`Chat with ID ${chatId} does not exist.`);
+            }
+            
             const result = await this.queryWithClient(client, ADD_MESSAGE_QUERY, [
                 messageId, 
                 chatId, 
