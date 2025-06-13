@@ -15,7 +15,7 @@ const getChatByChatId = async (chatId: string): Promise<Chat | null> => {
     return await getDatabaseClient()!.getChatByChatId(chatId);
 };
 
-const getChatsByUserId = async (chatId: string, updatedAfter?: number, limit?: number, offset?: number): Promise<Chat[] | null> => {
+const getChatsByUserId = async (chatId: string, updatedAfter?: number, limit?: number, offset?: number): Promise<Chat[]> => {
     if (!isDatabaseClientSet()) {
         throw new Error("Database client not initialized. Call initializeDatabase first.");
     }
