@@ -57,7 +57,7 @@
     "node": "^20.0.0 || >=22.0.0"
   },
   "dependencies": {
-    "@innobridge/qatar": "^0.0.1",
+    "@innobridge/qatar": "^0.0.2",
     "@innobridge/usermanagement": "^0.0.1",
     "@trpc/client": "^11.1.4",
     "@trpc/server": "^11.1.4",
